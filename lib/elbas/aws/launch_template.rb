@@ -16,6 +16,11 @@ module Elbas
           source_version: self.version
         }).launch_template_version
 
+        aws_client.modify_launch_template({
+          launch_template_id: self.id,
+          default_version: latest.version_number.to_s
+        })
+
         self.class.new(
           latest&.launch_template_id,
           latest&.launch_template_name,
