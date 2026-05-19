@@ -16,7 +16,7 @@ namespace :elbas do
     info "Getting ELBAS info..."
     fetch(:aws_autoscale_group_names).each do |aws_autoscale_group_name|
       asg = Elbas::AWS::AutoscaleGroup.new aws_autoscale_group_name
-      info "Autoscaling group is #{asg.inspect}"
+      info "Autoscaling group is #{asg}"
     end
   end
 
@@ -36,9 +36,14 @@ namespace :elbas do
       info "Updated launch template, new default version = #{launch_template.version}"
 
       info "Cleaning up old AMIs..."
-      ami.ancestors.each do |ancestor|
-        info "Deleting old AMI: #{ancestor.id} [DISABLED]"
-        # ancestor.delete
+      keep_ancestors = fetch(:elbas_keep_ancestors, 3)   # current + this many = 3 total
+      old_amis = ami.ancestors
+        .sort_by { |a| -a.deploy_id.to_i }   # newest first
+        .drop(keep_ancestors)                # skip the ones we keep
+      
+      old_amis.each do |ancestor|
+        info "Deleting old AMI: #{ancestor.id}"
+        ancestor.delete
       end
 
       info "Deployment complete!"
