@@ -36,8 +36,8 @@ namespace :elbas do
 
       info "Cleaning up old AMIs..."
       ami.ancestors.each do |ancestor|
-        info "Deleting old AMI: #{ancestor.id}"
-        ancestor.delete
+        info "Deleting old AMI: #{ancestor.id} [DISABLED]"
+        # ancestor.delete
       end
 
       info "Deployment complete!"
