@@ -11,6 +11,7 @@ namespace :elbas do
     end
   end
 
+  info "info ab out deploy"
   task :info do
     info "Getting ELBAS info..."
     fetch(:aws_autoscale_group_names).each do |aws_autoscale_group_name|
