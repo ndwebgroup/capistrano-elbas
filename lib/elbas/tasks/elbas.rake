@@ -11,14 +11,6 @@ namespace :elbas do
     end
   end
 
-  task :info do
-    info "Getting ELBAS info..."
-    fetch(:aws_autoscale_group_names).each do |aws_autoscale_group_name|
-      asg = Elbas::AWS::AutoscaleGroup.new aws_autoscale_group_name
-      info "Autoscaling group is #{asg.inspect}"
-    end
-  end
-
   task :deploy do
     fetch(:aws_autoscale_group_names).each do |aws_autoscale_group_name|
       info "Auto Scaling Group: #{aws_autoscale_group_name}"
@@ -36,8 +28,8 @@ namespace :elbas do
 
       info "Cleaning up old AMIs..."
       ami.ancestors.each do |ancestor|
-        info "Deleting old AMI: #{ancestor.id} [DISABLED]"
-        # ancestor.delete
+        info "Deleting old AMI: #{ancestor.id}"
+        ancestor.delete
       end
 
       info "Deployment complete!"
