@@ -2,6 +2,8 @@
 
 # Capistrano ELBAS (Elastic Load Balancer & AutoScaling)
 
+*This is a branch for use with Conductor CMS*
+
 [![Gem Version](https://badge.fury.io/rb/elbas.svg)](https://badge.fury.io/rb/elbas)
 
 ELBAS was written to ease the deployment of Rails applications to AWS AutoScale
