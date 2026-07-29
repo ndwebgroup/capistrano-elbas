@@ -38,9 +38,9 @@ module Elbas
         snapshots.each(&:delete)
       end
 
-      def self.create(instance, no_reboot: true)
+      def self.create(instance, environment: nil, no_reboot: true)
         ami = instance.aws_counterpart.create_image({
-          name: "ELBAS-ami-#{Time.now.to_i}",
+          name: ['ELBAS-ami', environment, Time.now.to_i].compact.join('-'),
           instance_id: instance.id,
           no_reboot: no_reboot
         })

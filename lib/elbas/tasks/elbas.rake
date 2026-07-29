@@ -2,6 +2,21 @@ require 'elbas'
 include Elbas::Logger
 
 namespace :elbas do
+  # e.g. "conductor-production-v26.7.29" — environment plus the release tag
+  def ami_name_tag
+    @ami_name_tag ||= ['conductor', fetch(:rails_env), release_version].join('-')
+  end
+
+  # The release being deployed: `cap production deploy branch=v26.7.29` deploys a
+  # tag, so prefer that; on the default branch fall back to the nearest local tag.
+  def release_version
+    branch = fetch(:branch).to_s
+    return branch unless branch.empty? || branch == 'main'
+
+    release = `git describe --tags --abbrev=0 2> /dev/null`.strip
+    release.empty? ? env.timestamp.strftime('%Y%m%d%H%M%S') : release
+  end
+
   task :ssh do
     include Capistrano::DSL
 
@@ -17,10 +32,11 @@ namespace :elbas do
       asg = Elbas::AWS::AutoscaleGroup.new aws_autoscale_group_name
 
       info "Creating AMI from a running instance..."
-      ami = Elbas::AWS::AMI.create asg.instances.running.sample
+      ami = Elbas::AWS::AMI.create asg.instances.running.sample, environment: fetch(:rails_env)
+      ami.tag 'Name', ami_name_tag
       ami.tag 'ELBAS-Deploy-group', asg.name
       ami.tag 'ELBAS-Deploy-id', env.timestamp.to_i.to_s
-      info  "Created AMI: #{ami.id}"
+      info  "Created AMI: #{ami.id} (#{ami_name_tag})"
 
       info "Updating launch template with the new AMI..."
       launch_template = asg.launch_template.update ami
