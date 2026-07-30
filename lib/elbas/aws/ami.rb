@@ -38,9 +38,12 @@ module Elbas
         snapshots.each(&:delete)
       end
 
-      def self.create(instance, environment: nil, no_reboot: true)
+      # `name` is the AMI's immutable name attribute and must be unique among
+      # the account's images — callers supplying one should include something
+      # that varies per bake. Default keeps the ELBAS-ami-<env>-<epoch> shape.
+      def self.create(instance, environment: nil, name: nil, no_reboot: true)
         ami = instance.aws_counterpart.create_image({
-          name: ['ELBAS-ami', environment, Time.now.to_i].compact.join('-'),
+          name: name || ['ELBAS-ami', environment, Time.now.to_i].compact.join('-'),
           instance_id: instance.id,
           no_reboot: no_reboot
         })

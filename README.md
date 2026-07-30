@@ -14,6 +14,25 @@ groups. During your Capistrano deployment, ELBAS will:
 - Update the AutoScale group's launch template with the AMI ID
 - Delete any outdated AMIs created by previous ELBAS deployments
 
+## AMI naming (this branch)
+
+Baked AMIs get a `Name` tag and a unique image name. All three surfaces are
+configurable in your Capistrano stage/deploy config; strings or procs
+(resolved at bake time) are accepted:
+
+```ruby
+# Name tag. Default: "<application>-<rails_env>-<release>",
+# e.g. "conductor-production-v26.7.29" (release = branch= var, else nearest git tag).
+set :elbas_ami_name, -> { "conductor-#{fetch(:rails_env)}-#{fetch(:branch)}" }
+
+# Extra tags, merged after Name and the ELBAS bookkeeping tags.
+set :elbas_ami_tags, { 'Team' => 'web', 'Release' => -> { fetch(:branch) } }
+
+# Immutable AMI name attribute — must be unique per bake if overridden.
+# Default: "ELBAS-ami-<rails_env>-<epoch>".
+set :elbas_ami_image_name, -> { "conductor-#{Time.now.to_i}" }
+```
+
 ## Installation
 
 Add to Gemfile, then `bundle`:
