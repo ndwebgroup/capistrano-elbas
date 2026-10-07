@@ -67,8 +67,18 @@ namespace :elbas do
       info "Auto Scaling Group: #{aws_autoscale_group_name}"
       asg = Elbas::AWS::AutoscaleGroup.new aws_autoscale_group_name
 
+      instance = asg.instances.running.sample
+
+      # create_image runs with no_reboot, so anything still in the page cache
+      # (e.g. assets precompiled seconds earlier) lands in the snapshot as
+      # zero-length or NUL-filled files. Flush to disk first.
+      info "Flushing disk writes on #{instance.hostname}..."
+      on(roles(:all).select { |server| server.hostname == instance.hostname }) do
+        execute :sync
+      end
+
       info "Creating AMI from a running instance..."
-      ami = Elbas::AWS::AMI.create asg.instances.running.sample,
+      ami = Elbas::AWS::AMI.create instance,
                                    environment: fetch(:rails_env),
                                    name: ami_image_name
       ami.tag 'Name', ami_name_tag
